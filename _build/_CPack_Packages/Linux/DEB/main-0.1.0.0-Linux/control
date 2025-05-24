@@ -1,0 +1,10 @@
+Architecture: all
+Description: Lab06_home
+ MB it works correctly
+Maintainer: BridgeInSky
+Package: lab06
+Priority: optional
+Section: devel
+Version: 0.1.0.0-1
+Installed-Size: 39
+
