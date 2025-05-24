@@ -47,7 +47,7 @@ set(CPACK_SOURCE_GENERATOR "TGZ;ZIP")
 set(CPACK_DEBIAN_PACKAGE_NAME "lab06")
 set(CPACK_DEBIAN_FILE_NAME "lab06_home-${PRINT_VERSION}.deb")
 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "all")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "FarToBblu232")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "BridgeInSky")
 set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "MB it works correctly")
 set(CPACK_DEBIAN_PACKAGE_RELEASE 1)
 
@@ -55,24 +55,26 @@ set(CPACK_GENERATOR "DEB")
 
 include(CPack)
 ```
-Чтобы создать .deb файл я использовал следующее
+Чтобы создать .deb файл я использовала следующее
 ```bash
 mkdir _build && cd _build
 cmake ..
 cmake --build .
 cpack
 ```
-После чего в папке *_build* появился архив, который я перенёс в Arts и разпаковал  
-Чтобы артефакты пофялялись ещё и дистанционно, я обновил yml файл  
+После чего в папке *_build* появился архив, который я перенесла в Arts и разпаковала  
+Чтобы артефакты пофялялись ещё и дистанционно, я обновила yml файл  
 ```bash
 name: Actions
+
 on:
-  push:
-    branches: [main]
-    tags:
-       - "v*.*.*"
-  pull_request:
-    branches: [main]
+ push:
+  branches: [master]
+ pull_request:
+  branches: [master]
+  
+permissions:
+  contents: write
 
 jobs: 
  build_Linux:
@@ -81,40 +83,39 @@ jobs:
 
   steps:
   - uses: actions/checkout@v4
-
+  
   - name: Configurate
     run: |
-      mkdir ${{github.workspace}}/_build && cd ${{github.workspace}}/_build
+      rm -rf ${{github.workspace}}/_build
+      mkdir _build && cd _build
       cmake ..
       cmake --build .
 
-  - name: my_exe
+  - name: cpack
     run: |
-      echo -e "1\n2\n1" | ${{github.workspace}}/_build/main
- 
+      cd ${{github.workspace}}/_build
+      cpack
+
   - name: package
     run: cmake --build ${{github.workspace}}/_build --target package
-  
+
   - name: package_source
     run: cmake --build ${{github.workspace}}/_build --target package_source
+
+  - name: Make a release
+    uses: ncipollo/release-action@v1
+    with:
+      artifacts: "${{github.workspace}}/_build/*.deb,${{github.workspace}}/_build/*.tar.gz,${{github.workspace}}/_build/*.zip"
+      tag: 1.0.0
+      token: ${{ secrets.GITHUB_TOKEN }}
+      allowUpdates: true
 
   - name: Arts
     uses: actions/upload-artifact@v4
     with:
         name: main
         path: ${{github.workspace}}/_build/main
-
-  - name: Make a release
-    uses: ncipollo/release-action@v1
-    with:
-        artifacts: "${{github.workspace}}/_build/*.deb,${{github.workspace}}/_build/*.tar.gz,${{github.workspace}}/_build/*.zip"
-        tag: 1.0.0
-        token: ${{ secrets.GITHUB_TOKEN }}
-        allowUpdates: true
 ```
 Этот файл:
 1. Создаёт артефакт из моего executable файла
 2. Обновляет релиз 1.0.0
-```
-убрал папку _build из релиза
-```
